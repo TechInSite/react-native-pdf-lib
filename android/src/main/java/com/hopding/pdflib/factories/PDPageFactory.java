@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 
 /**
  * Create a PDPage object and applies actions described in JSON
@@ -121,42 +122,33 @@ public class PDPageFactory {
     }
 
     private void drawImage(ReadableMap imageActions) throws NoSuchKeyException, IOException {
-        String imageType = imageActions.getString("imageType");
         String imagePath = imageActions.getString("imagePath");
         String imageSource = imageActions.getString("source");
 
         Integer[] coords = getCoords(imageActions, true);
         Integer[] dims   = getDims(imageActions, false);
 
-        if (imageType.equals("jpg") || imageType.equals("png")) {
-            // Create PDImageXObject
-            PDImageXObject image = null;
+        PDImageXObject image = null;
 
-            if (imageSource.equals("path")) {
-               if (imageType.equals("jpg")) {
-                  Bitmap bmpImage = BitmapFactory.decodeFile(imagePath);
-                  image = JPEGFactory.createFromImage(document, bmpImage);
-               }
-               else { // imageType.equals("png") == true
-                   InputStream in = new FileInputStream(new File(imagePath));
-                   Bitmap bmp = BitmapFactory.decodeStream(in);
-                   image = LosslessFactory.createFromImage(document, bmp);
-               }
-            }
+        if (imageSource.equals("path")) {
+            File fileToOpen = new File(URI.create(imagePath));
+            InputStream in = new FileInputStream(fileToOpen);
+            Bitmap bmp = BitmapFactory.decodeStream(in);
+            image = LosslessFactory.createFromImage(document, bmp);
+        }
 
-            if (imageSource.equals("assets")) {
-                InputStream is = ASSET_MANAGER.open(imagePath);
-                Bitmap bmp = BitmapFactory.decodeStream(is);
-                image = LosslessFactory.createFromImage(document, bmp);
-            }
+        if (imageSource.equals("assets")) {
+            InputStream is = ASSET_MANAGER.open(imagePath);
+            Bitmap bmp = BitmapFactory.decodeStream(is);
+            image = LosslessFactory.createFromImage(document, bmp);
+        }
 
-            // Draw the PDImageXObject to the stream
-            if (dims[0] != null && dims[1] != null) {
-                stream.drawImage(image, coords[0], coords[1], dims[0], dims[1]);
-            }
-            else {
-                stream.drawImage(image, coords[0], coords[1]);
-            }
+        // Draw the PDImageXObject to the stream
+        if (dims[0] != null && dims[1] != null) {
+            stream.drawImage(image, coords[0], coords[1], dims[0], dims[1]);
+        }
+        else {
+            stream.drawImage(image, coords[0], coords[1]);
         }
     }
 

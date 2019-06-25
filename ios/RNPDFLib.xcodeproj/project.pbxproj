@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1F95FD4E22BEFABB001DA13D /* Photos.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1F95FD4D22BEFABB001DA13D /* Photos.framework */; };
 		CE7208A51F4A5DDD008CDD99 /* PDFPageFactory.mm in Sources */ = {isa = PBXBuildFile; fileRef = CE7208A31F4A5DDD008CDD99 /* PDFPageFactory.mm */; };
 		CE7208A71F4A765A008CDD99 /* PDFWriterFactory.mm in Sources */ = {isa = PBXBuildFile; fileRef = CE7208A61F4A765A008CDD99 /* PDFWriterFactory.mm */; };
 		CEEA0B9D1F4500FE00DE517B /* libFreeType.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CEEA0B981F4500FE00DE517B /* libFreeType.a */; };
@@ -32,6 +33,7 @@
 
 /* Begin PBXFileReference section */
 		134814201AA4EA6300B7C361 /* libRNPDFLib.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libRNPDFLib.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		1F95FD4D22BEFABB001DA13D /* Photos.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Photos.framework; path = System/Library/Frameworks/Photos.framework; sourceTree = SDKROOT; };
 		CE7208A31F4A5DDD008CDD99 /* PDFPageFactory.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = PDFPageFactory.mm; sourceTree = "<group>"; };
 		CE7208A41F4A5DDD008CDD99 /* PDFPageFactory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PDFPageFactory.h; sourceTree = "<group>"; };
 		CE7208A61F4A765A008CDD99 /* PDFWriterFactory.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = PDFWriterFactory.mm; sourceTree = "<group>"; };
@@ -50,6 +52,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1F95FD4E22BEFABB001DA13D /* Photos.framework in Frameworks */,
 				CEEA0B9D1F4500FE00DE517B /* libFreeType.a in Frameworks */,
 				CEEA0B9E1F4500FE00DE517B /* libLibJpeg.a in Frameworks */,
 				CEEA0B9F1F4500FE00DE517B /* libLibTiff.a in Frameworks */,
@@ -94,6 +97,7 @@
 		CEEA0B971F4500FA00DE517B /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				1F95FD4D22BEFABB001DA13D /* Photos.framework */,
 				CEEA0B981F4500FE00DE517B /* libFreeType.a */,
 				CEEA0B991F4500FE00DE517B /* libLibJpeg.a */,
 				CEEA0B9A1F4500FE00DE517B /* libLibTiff.a */,
@@ -142,6 +146,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 			);
 			mainGroup = 58B511D21A9E6C8500147676;

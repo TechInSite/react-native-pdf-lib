@@ -8,16 +8,21 @@
 #include "InputStringBufferStream.h"
 #include "MyStringBuf.h"
 
-PDFPageFactory::PDFPageFactory (PDFWriter* pdfWriter, PDFPage* page) {
+#import <Photos/Photos.h>
+#import <React/RCTImageLoader.h>
+
+PDFPageFactory::PDFPageFactory (PDFWriter* pdfWriter, PDFPage* page, RCTBridge* bridge) {
     this->pdfWriter    = pdfWriter;
     this->page         = page;
     this->modifiedPage = nullptr;
+    this->bridge       = bridge;
 }
 
-PDFPageFactory::PDFPageFactory (PDFWriter* pdfWriter, PDFModifiedPage* page) {
+PDFPageFactory::PDFPageFactory (PDFWriter* pdfWriter, PDFModifiedPage* page, RCTBridge* bridge) {
     this->pdfWriter    = pdfWriter;
     this->modifiedPage = page;
     this->page         = nullptr;
+    this->bridge       = bridge;
 }
 
 ResourcesDictionary* PDFPageFactory::getResourcesDict () {
@@ -44,9 +49,9 @@ void PDFPageFactory::endContext () {
     }
 }
 
-void PDFPageFactory::createAndWrite (PDFWriter* pdfWriter, NSDictionary* pageActions) {
+void PDFPageFactory::createAndWrite (PDFWriter* pdfWriter, NSDictionary* pageActions, RCTBridge* bridge) {
     PDFPage* page = new PDFPage();
-    PDFPageFactory factory(pdfWriter, page);
+    PDFPageFactory factory(pdfWriter, page, bridge);
     
     NumberPair coords = getCoords(pageActions[@"mediaBox"]);
     NumberPair dims   = getDims(pageActions[@"mediaBox"]);
@@ -59,11 +64,11 @@ void PDFPageFactory::createAndWrite (PDFWriter* pdfWriter, NSDictionary* pageAct
     pdfWriter->WritePageAndRelease(page);
 }
 
-void PDFPageFactory::modifyAndWrite (PDFWriter* pdfWriter, NSDictionary* pageActions) {
+void PDFPageFactory::modifyAndWrite (PDFWriter* pdfWriter, NSDictionary* pageActions, RCTBridge* bridge) {
     NSInteger pageIndex = [RCTConvert NSInteger:pageActions[@"pageIndex"]];
     PDFModifiedPage page(pdfWriter, pageIndex);
-    PDFPageFactory factory(pdfWriter, &page);
-    
+    PDFPageFactory factory(pdfWriter, &page, bridge);
+
     factory.applyActions(pageActions[@"actions"]);
     factory.endContext();
     page.WritePage();
@@ -71,6 +76,7 @@ void PDFPageFactory::modifyAndWrite (PDFWriter* pdfWriter, NSDictionary* pageAct
 
 void PDFPageFactory::applyActions (NSDictionary* actions) {
     // Add any necessary FormXObjects before opening the Page's ContentContext
+    
     for (NSDictionary *action in actions) {
         NSString *type = [RCTConvert NSString:action[@"type"]];
         if ([type isEqualToString:@"image"]) {
@@ -106,31 +112,32 @@ void PDFPageFactory::applyActions (NSDictionary* actions) {
 
 // Add a FormXObject to the PDFWriter for the image specified in the given `pdfImageActions`.
 void PDFPageFactory::addPDFImageFormXObject (NSDictionary* pdfImageActions) {
-    NSString *imageType = [RCTConvert NSString:pdfImageActions[@"imageType"]];
     NSString *imagePath = [RCTConvert NSString:pdfImageActions[@"imagePath"]];
     AbstractContentContext::ImageOptions options;
     
-    if ([imageType isEqualToString:@"png"]) {
-        if(![[NSFileManager defaultManager] fileExistsAtPath:imagePath]) {
-            NSString *msg = [NSString stringWithFormat:@"%@%@", @"No image found at path: ", imagePath];
-            throw std::invalid_argument(msg.UTF8String);
-        }
-        
-        UIImage* image   = [UIImage imageWithContentsOfFile:imagePath];
-        NSData* imagePDF = PDFPageFactory::convertImageToPDF(image);
-        
-        IOBasicTypes::Byte* bytes = (unsigned char*)[imagePDF bytes];
-        InputByteArrayStream imageStream(bytes, [imagePDF length]*sizeof(char));
-        EStatusCodeAndObjectIDTypeList result = pdfWriter->CreateFormXObjectsFromPDF((IByteReaderWithPosition*)&imageStream,
-                                                                                     PDFPageRange(),
-                                                                                     ePDFPageBoxMediaBox);
-        if (result.first == EStatusCode::eFailure) {
-            throw std::invalid_argument(@"Failed to embed PDF!".UTF8String);
-        }
-        
-        // Store the FormXObject's ID under the key for the image
-        formXObjectMap.insert(std::pair<NSString*, unsigned long>(imagePath, result.second.front()));
+    __block UIImage *assetImage = nil;
+    dispatch_semaphore_t sem = dispatch_semaphore_create(0);
+    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:imagePath]];
+    [this->bridge.imageLoader loadImageWithURLRequest:request size:CGSizeZero scale:1 clipped:YES resizeMode:RCTResizeModeCover progressBlock:nil partialLoadBlock:nil completionBlock:^(NSError *error, UIImage *image) {
+        assetImage = image;
+        dispatch_semaphore_signal(sem);
+    }];
+    dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER); // TODO: Figoure out a decent timeout
+
+    NSData* imagePDF = PDFPageFactory::convertImageToPDF(assetImage);
+    
+    IOBasicTypes::Byte* bytes = (unsigned char*)[imagePDF bytes];
+    InputByteArrayStream imageStream(bytes, [imagePDF length]*sizeof(char));
+    EStatusCodeAndObjectIDTypeList result = pdfWriter->CreateFormXObjectsFromPDF((IByteReaderWithPosition*)&imageStream,
+                                                                                    PDFPageRange(),
+                                                                                    ePDFPageBoxMediaBox);
+    if (result.first == EStatusCode::eFailure) {
+        throw std::invalid_argument(@"Failed to embed PDF!".UTF8String);
     }
+    
+    // Store the FormXObject's ID under the key for the image
+    formXObjectMap.insert(std::pair<NSString*, unsigned long>(imagePath, result.second.front()));
+
 }
 
 void PDFPageFactory::drawText (NSDictionary* textActions) {
@@ -163,100 +170,79 @@ void PDFPageFactory::drawRectangle (NSDictionary* rectActions) {
 }
 
 void PDFPageFactory::drawImage (NSDictionary* imageActions) {
-    NSString *imageType = [RCTConvert NSString:imageActions[@"imageType"]];
-    
-    if ([imageType isEqualToString:@"jpg"]) {
-        NSString *imagePath = [RCTConvert NSString:imageActions[@"imagePath"]];
-        NumberPair coords   = getCoords(imageActions);
-        NumberPair dims     = getDims(imageActions);
-        AbstractContentContext::ImageOptions options;
-        
-        if (dims.a && dims.b) {
-            options.transformationMethod = AbstractContentContext::EImageTransformation::eFit;
-            options.fitPolicy            = AbstractContentContext::EFitPolicy::eAlways;
-            options.boundingBoxWidth     = dims.a.intValue;
-            options.boundingBoxHeight    = dims.b.intValue;
-        }
-        
-        if(![[NSFileManager defaultManager] fileExistsAtPath:imagePath]) {
-            NSString *msg = [NSString stringWithFormat:@"%@%@", @"No image found at path: ", imagePath];
-            throw std::invalid_argument(msg.UTF8String);
-        }
-        context->DrawImage(coords.a.intValue, coords.b.intValue, imagePath.UTF8String, options);
-    }
-    else if ([imageType isEqualToString:@"png"]) {
-        drawImageAsPDF(imageActions);
-    }
+    drawImageAsPDF(imageActions);
 }
 
 void PDFPageFactory::drawImageAsPDF (NSDictionary* imageActions) {
     // Initialize relevant variables
-    NSString *imageType = [RCTConvert NSString:imageActions[@"imageType"]];
     NSString *imagePath = [RCTConvert NSString:imageActions[@"imagePath"]];
     NumberPair coords   = getCoords(imageActions);
     NumberPair dims     = getDims(imageActions);
     AbstractContentContext::ImageOptions options;
     
-    // Only go this for JPGs & PNGs
-    if ([imageType isEqualToString:@"jpg"] || [imageType isEqualToString:@"png"]) {
-        UIImage* image = [UIImage imageWithContentsOfFile:imagePath];
-
-        if (dims.a && dims.b) {
-            options.transformationMethod = AbstractContentContext::EImageTransformation::eFit;
-            options.fitPolicy            = AbstractContentContext::EFitPolicy::eAlways;
-            options.boundingBoxWidth     = dims.a.intValue;
-            options.boundingBoxHeight    = dims.b.intValue;
-//            options.fitProportional = true;
-        }
-        
-        double transformation[6] = {1,0,0,1,0,0};
-        /* --- Adjust transform matrix to scale the image appropriately --- */
-        if(options.transformationMethod == AbstractContentContext::eMatrix) {
-            for(int i = 0; i < 6; ++i)
-                transformation[i] = options.matrix[i];
-        }
-        else if(options.transformationMethod == AbstractContentContext::eFit) {
-            double scaleX = 1;
-            double scaleY = 1;
-            
-            if(options.fitPolicy == AbstractContentContext::eAlways) {
-                scaleX = options.boundingBoxWidth  / [image size].width;
-                scaleY = options.boundingBoxHeight / [image size].height;
-            }
-            else if([image size].width  > options.boundingBoxWidth ||
-                    [image size].height > options.boundingBoxHeight)
-            { // Overflow
-                scaleX = [image size].width  > options.boundingBoxWidth  ? options.boundingBoxWidth  / [image size].width  : 1;
-                scaleY = [image size].height > options.boundingBoxHeight ? options.boundingBoxHeight / [image size].height : 1;
-            }
-            
-            if(options.fitProportional) {
-                scaleX = std::min(scaleX, scaleY);
-                scaleY = scaleX;
-            }
-            
-            transformation[0] = scaleX;
-            transformation[3] = scaleY;
-        }
-        
-        transformation[4] += coords.a.intValue;
-        transformation[5] += coords.b.intValue;
-        /* ----------------------------------------------------------------- */
-        
-        // Retrieve & use the formXObject that we previously generated for this image
-        std::string formXObjectName = getResourcesDict()->AddFormXObjectMapping(formXObjectMap.at(imagePath));
-        
-        // Draw on the page's context
-        context->q();
-        context->cm(transformation[0],
-                    transformation[1],
-                    transformation[2],
-                    transformation[3],
-                    transformation[4],
-                    transformation[5]);
-        context->Do(formXObjectName);
-        context->Q();
+    __block UIImage *image = nil;
+    dispatch_semaphore_t sem = dispatch_semaphore_create(0);
+    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:imagePath]];
+    [this->bridge.imageLoader loadImageWithURLRequest:request size:CGSizeZero scale:1 clipped:YES resizeMode:RCTResizeModeCover progressBlock:nil partialLoadBlock:nil completionBlock:^(NSError *error, UIImage *assetImage) {
+        image = assetImage;
+        dispatch_semaphore_signal(sem);
+    }];
+    dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER);
+    
+    if (dims.a && dims.b) {
+        options.transformationMethod = AbstractContentContext::EImageTransformation::eFit;
+        options.fitPolicy            = AbstractContentContext::EFitPolicy::eAlways;
+        options.boundingBoxWidth     = dims.a.intValue;
+        options.boundingBoxHeight    = dims.b.intValue;
     }
+    
+    double transformation[6] = {1,0,0,1,0,0};
+    /* --- Adjust transform matrix to scale the image appropriately --- */
+    if(options.transformationMethod == AbstractContentContext::eMatrix) {
+        for(int i = 0; i < 6; ++i)
+            transformation[i] = options.matrix[i];
+    }
+    else if(options.transformationMethod == AbstractContentContext::eFit) {
+        double scaleX = 1;
+        double scaleY = 1;
+        
+        if(options.fitPolicy == AbstractContentContext::eAlways) {
+            scaleX = options.boundingBoxWidth  / [image size].width;
+            scaleY = options.boundingBoxHeight / [image size].height;
+        }
+        else if([image size].width  > options.boundingBoxWidth ||
+                [image size].height > options.boundingBoxHeight)
+        { // Overflow
+            scaleX = [image size].width  > options.boundingBoxWidth  ? options.boundingBoxWidth  / [image size].width  : 1;
+            scaleY = [image size].height > options.boundingBoxHeight ? options.boundingBoxHeight / [image size].height : 1;
+        }
+        
+        if(options.fitProportional) {
+            scaleX = std::min(scaleX, scaleY);
+            scaleY = scaleX;
+        }
+        
+        transformation[0] = scaleX;
+        transformation[3] = scaleY;
+    }
+    
+    transformation[4] += coords.a.intValue;
+    transformation[5] += coords.b.intValue;
+    /* ----------------------------------------------------------------- */
+    
+    // Retrieve & use the formXObject that we previously generated for this image
+    std::string formXObjectName = getResourcesDict()->AddFormXObjectMapping(formXObjectMap.at(imagePath));
+    
+    // Draw on the page's context
+    context->q();
+    context->cm(transformation[0],
+                transformation[1],
+                transformation[2],
+                transformation[3],
+                transformation[4],
+                transformation[5]);
+    context->Do(formXObjectName);
+    context->Q();
 }
 
 NSData* PDFPageFactory::convertImageToPDF (UIImage* image) {

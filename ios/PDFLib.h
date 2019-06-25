@@ -7,5 +7,7 @@
 
 @interface PDFLib : NSObject <RCTBridgeModule>
 
+@property (nonatomic, weak, readonly) RCTBridge *bridge;
+
 @end
 

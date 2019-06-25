@@ -5,6 +5,7 @@
 #include <PageContentContext.h>
 #include <PDFModifiedPage.h>
 
+@class RCTBridge;
 
 typedef struct {
     NSNumber* a;
@@ -18,11 +19,13 @@ private:
     PDFPage*                page;
     PDFModifiedPage*        modifiedPage;
     AbstractContentContext* context;
+    RCTBridge*              bridge;
+
     std::map<NSString*, unsigned long> formXObjectMap;
     
 //    PDFPageFactory  (PDFWriter*, AbstractContentContext*);
-    PDFPageFactory  (PDFWriter*, PDFPage*);
-    PDFPageFactory  (PDFWriter*, PDFModifiedPage*);
+    PDFPageFactory  (PDFWriter*, PDFPage*, RCTBridge*);
+    PDFPageFactory  (PDFWriter*, PDFModifiedPage*, RCTBridge*);
     
     ResourcesDictionary* getResourcesDict ();
     void                 endContext       ();
@@ -45,7 +48,7 @@ private:
 
     
 public:
-    static void createAndWrite (PDFWriter* pdfWriter, NSDictionary* pageActions);
-    static void modifyAndWrite (PDFWriter* pdfWriter, NSDictionary* pageActions);
+    static void createAndWrite (PDFWriter* pdfWriter, NSDictionary* pageActions, RCTBridge* bridge);
+    static void modifyAndWrite (PDFWriter* pdfWriter, NSDictionary* pageActions, RCTBridge* bridge);
 
 };

@@ -1,35 +1,40 @@
 {
-  "name": "react-native-pdf-lib",
-  "version": "0.2.1",
-  "description": "A react native library for handling generating PDFs",
-  "main": "index.js",
-  "scripts": {
-    "test": "jest"
+  "_from": "react-native-pdf-lib",
+  "_id": "react-native-pdf-lib@0.2.1",
+  "_inBundle": false,
+  "_integrity": "sha512-CJg97rbVKuQAZs/U2GZ+P8VczikK0C9U2SoA30u+bxVtcnbBxh84JcMus3V5dZcfSrA+SIRWCDd0tQ8P2CeEjg==",
+  "_location": "/react-native-pdf-lib",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "tag",
+    "registry": true,
+    "raw": "react-native-pdf-lib",
+    "name": "react-native-pdf-lib",
+    "escapedName": "react-native-pdf-lib",
+    "rawSpec": "",
+    "saveSpec": null,
+    "fetchSpec": "latest"
   },
-  "keywords": [
-    "react-native"
+  "_requiredBy": [
+    "#USER",
+    "/"
   ],
-  "author": "Andrew Dillon",
-  "license": "Apache-2.0",
-  "peerDependencies": {},
-  "repository": "git+https://github.com/Hopding/react-native-pdf-lib.git",
+  "_resolved": "https://registry.npmjs.org/react-native-pdf-lib/-/react-native-pdf-lib-0.2.1.tgz",
+  "_shasum": "03adeea07e548e5a3757623c35837f7623070640",
+  "_spec": "react-native-pdf-lib",
+  "_where": "/Users/gavinconway/Development/techinsite/pop-photo-book/mobile",
+  "author": {
+    "name": "Andrew Dillon"
+  },
   "bugs": {
     "url": "https://github.com/Hopding/react-native-pdf-lib/issues"
   },
-  "homepage": "https://github.com/Hopding/react-native-pdf-lib#readme",
-  "rnpm": {
-    "assets": [
-      "./assets"
-    ]
+  "bundleDependencies": false,
+  "dependencies": {
+    "babel-preset-flow": "^6.23.0"
   },
-  "jest": {
-    "setupFiles": [
-      "./jest/jest-setup.js"
-    ],
-    "roots": [
-      "<rootDir>/js"
-    ]
-  },
+  "deprecated": false,
+  "description": "A react native library for handling generating PDFs",
   "devDependencies": {
     "babel-cli": "^6.26.0",
     "babel-eslint": "^8.2.2",
@@ -45,7 +50,33 @@
     "jest": "^22.4.0",
     "jest-cli": "^22.4.0"
   },
-  "dependencies": {
-    "babel-preset-flow": "^6.23.0"
-  }
+  "homepage": "https://github.com/Hopding/react-native-pdf-lib#readme",
+  "jest": {
+    "setupFiles": [
+      "./jest/jest-setup.js"
+    ],
+    "roots": [
+      "<rootDir>/js"
+    ]
+  },
+  "keywords": [
+    "react-native"
+  ],
+  "license": "Apache-2.0",
+  "main": "index.js",
+  "name": "react-native-pdf-lib",
+  "peerDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Hopding/react-native-pdf-lib.git"
+  },
+  "rnpm": {
+    "assets": [
+      "./assets"
+    ]
+  },
+  "scripts": {
+    "test": "jest"
+  },
+  "version": "0.2.1"
 }

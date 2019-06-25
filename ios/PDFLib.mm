@@ -25,7 +25,8 @@ RCT_REMAP_METHOD(createPDF,
                  createPDFReject:(RCTPromiseRejectBlock)reject)
 {
     try {
-        NSString* path = PDFWriterFactory::create(documentActions);
+        
+        NSString* path = PDFWriterFactory::create(documentActions, self.bridge);
         if (path == nil)
         {
             reject(@"error", @"Error generating PDF!", nil);
@@ -46,7 +47,7 @@ RCT_REMAP_METHOD(modifyPDF,
                  modifyPDFResolve:(RCTPromiseResolveBlock)resolve
                  modifyPDFReject:(RCTPromiseRejectBlock)reject)
 {
-    NSString* path = PDFWriterFactory::modify(documentActions);
+    NSString* path = PDFWriterFactory::modify(documentActions, self.bridge);
     if (path == nil)
     {
         reject(@"error", @"Error modifying PDF!", nil);

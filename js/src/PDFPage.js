@@ -21,7 +21,6 @@ export type RectangleAction = {
 export type ImageAction = {
   type: 'image',
   imagePath: string,
-  imageType: string,
   imageSource: string,
   x: number,
   y: number,
@@ -30,7 +29,7 @@ export type ImageAction = {
 };
 
 export type PageActions =
-    TextAction
+  TextAction
   | RectangleAction
   | ImageAction
   ;
@@ -66,7 +65,7 @@ export default class PDFPage {
   setMediaBox = (
     width: number,
     height: number,
-    options: { x?: number, y?: number }={},
+    options: { x?: number, y?: number } = {},
   ) => {
     if (this.page.pageIndex !== undefined) {
       throw new Error('Cannot set media box on modified page!');
@@ -88,7 +87,7 @@ export default class PDFPage {
       y?: number,
       color?: string,
       fontSize?: number,
-    }={}
+    } = {}
   ) => {
     const textAction: TextAction = {
       x: 0,
@@ -111,7 +110,7 @@ export default class PDFPage {
       width?: number,
       height?: number,
       color?: string,
-    }={}
+    } = {}
   ) => {
     const rectAction: RectangleAction = {
       x: 0,
@@ -127,21 +126,17 @@ export default class PDFPage {
   }
 
   drawImage = (
-      imagePath: string,
-      imageType: string,
-      options: {
-        x?: number,
-        y?: number,
-        width?: number,
-        height?: number,
-        imageSource?: string
-      }={}
+    imagePath: string,
+    options: {
+      x?: number,
+      y?: number,
+      width?: number,
+      height?: number,
+      imageSource?: string
+    } = {}
   ) => {
     // TODO: Add logic using ReactNative.Image to automatically preserve image
     // dimensions!
-    if (!['png', 'jpg'].includes(imageType)) {
-      throw new Error('Only JPG and PNG images are currently supported!');
-    }
     if (typeof options.imageSource !== 'undefined' && !['assets', 'path'].includes(options.imageSource)) {
       throw new Error('Only images from "assets" and "path" are currently supported!');
     }
@@ -152,7 +147,6 @@ export default class PDFPage {
       ...options,
       type: 'image',
       imagePath,
-      imageType
     };
     this.page.actions.push(imageAction);
     return this;
