@@ -1,5 +1,11 @@
 # react-native-pdf-lib
 
+## Fork Modifications
+
+The imageType parameter has been removed. Providing a URL-type path to an image now works - although this isn't tested with non-local URLs.
+
+---
+
 ## Purpose
 This library's purpose is to fill the gap that currently exists in the React Native ecosystem for PDF creation and editing. It aims to provide an easy, simple, and consistent API for both **creating** new and **editing** existing PDF documents in React Native. This library supports Android devices >= API 18, and iOS devices >= iOS 8.0.
 
@@ -65,13 +71,13 @@ const page2 = PDFPage
   .create()
   .setMediaBox(250, 250)
   .drawText('You can add JPG images too!')
-  .drawImage(jpgPath, 'jpg', {
+  .drawImage(jpgPath, {
      x: 5,
      y: 125,
      width: 200,
      height: 100,
   })
-  .drawImage(pngPath, 'png', {
+  .drawImage(pngPath, {
      x: 5,
      y: 25,
      width: 200,
@@ -120,7 +126,6 @@ const page2 = PDFPage
   .drawText('You can add images to modified pages too!')
   .drawImage(
     jpgPath, 
-    'jpg',
     {
       x: 5,
       y: 125,
@@ -131,7 +136,6 @@ const page2 = PDFPage
   )
   .drawImage(
     pngPath,
-    'png',
     {
       x: 5,
       y: 25,
