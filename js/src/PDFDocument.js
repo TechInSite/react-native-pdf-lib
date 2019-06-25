@@ -67,7 +67,6 @@ export default class PDFDocument {
   }
 
   addPage = ({ page }: PDFPage) => {
-    console.log("##### page: ", page);
     if (page.pageIndex !== undefined) {
       throw new Error(
         'Pages created with Page.modify() must be added to document with ' +
@@ -79,7 +78,6 @@ export default class PDFDocument {
   };
 
   addPages = (pages: PDFPage[]) => {
-    console.log("##### pages: ", pages);
     pages.forEach(page => {
       this.addPage(page);
     });
