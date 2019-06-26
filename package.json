@@ -1,27 +1,30 @@
 {
-  "_from": "react-native-pdf-lib",
-  "_id": "react-native-pdf-lib@0.2.1",
+  "_args": [
+    [
+      "github:TechInSite/react-native-pdf-lib",
+      "/Users/gavinconway/Development/techinsite/pop-photo-book/mobile"
+    ]
+  ],
+  "_from": "github:TechInSite/react-native-pdf-lib",
+  "_id": "react-native-pdf-lib@github:TechInSite/react-native-pdf-lib#85a9cd1948f5100725bd393d841eb9da872a4d0e",
   "_inBundle": false,
-  "_integrity": "sha512-CJg97rbVKuQAZs/U2GZ+P8VczikK0C9U2SoA30u+bxVtcnbBxh84JcMus3V5dZcfSrA+SIRWCDd0tQ8P2CeEjg==",
+  "_integrity": "",
   "_location": "/react-native-pdf-lib",
   "_phantomChildren": {},
   "_requested": {
-    "type": "tag",
-    "registry": true,
-    "raw": "react-native-pdf-lib",
-    "name": "react-native-pdf-lib",
-    "escapedName": "react-native-pdf-lib",
-    "rawSpec": "",
-    "saveSpec": null,
-    "fetchSpec": "latest"
+    "type": "git",
+    "raw": "github:TechInSite/react-native-pdf-lib",
+    "rawSpec": "github:TechInSite/react-native-pdf-lib",
+    "saveSpec": "github:TechInSite/react-native-pdf-lib",
+    "fetchSpec": null,
+    "gitCommittish": null
   },
   "_requiredBy": [
-    "#USER",
     "/"
   ],
-  "_resolved": "https://registry.npmjs.org/react-native-pdf-lib/-/react-native-pdf-lib-0.2.1.tgz",
+  "_resolved": "github:TechInSite/react-native-pdf-lib#85a9cd1948f5100725bd393d841eb9da872a4d0e",
   "_shasum": "03adeea07e548e5a3757623c35837f7623070640",
-  "_spec": "react-native-pdf-lib",
+  "_spec": "github:TechInSite/react-native-pdf-lib",
   "_where": "/Users/gavinconway/Development/techinsite/pop-photo-book/mobile",
   "author": {
     "name": "Andrew Dillon"

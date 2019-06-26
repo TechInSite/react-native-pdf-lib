@@ -2,6 +2,8 @@ package com.hopding.pdflib.factories;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
+import android.media.ExifInterface;
 import android.support.annotation.RequiresPermission;
 import android.content.Context;
 import android.content.res.AssetManager;
@@ -121,6 +123,38 @@ public class PDPageFactory {
         stream.fill();
     }
 
+    private static Bitmap rotateImage(Bitmap source, float angle) {
+        Matrix matrix = new Matrix();
+        matrix.postRotate(angle);
+        return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
+    }
+
+    private static Bitmap applyRotationTransform(String imagePath, Bitmap imageBitmap) throws IOException {
+        ExifInterface ei = new ExifInterface(imagePath);
+        int orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
+
+        Bitmap rotatedBitmap;
+        switch(orientation) {
+
+            case ExifInterface.ORIENTATION_ROTATE_90:
+                rotatedBitmap = rotateImage(imageBitmap, 90);
+                break;
+
+            case ExifInterface.ORIENTATION_ROTATE_180:
+                rotatedBitmap = rotateImage(imageBitmap, 180);
+                break;
+
+            case ExifInterface.ORIENTATION_ROTATE_270:
+                rotatedBitmap = rotateImage(imageBitmap, 270);
+                break;
+
+            case ExifInterface.ORIENTATION_NORMAL:
+            default:
+                rotatedBitmap = imageBitmap;
+        }
+        return rotatedBitmap;
+    }
+
     private void drawImage(ReadableMap imageActions) throws NoSuchKeyException, IOException {
         String imagePath = imageActions.getString("imagePath");
         String imageSource = imageActions.getString("source");
@@ -128,27 +162,31 @@ public class PDPageFactory {
         Integer[] coords = getCoords(imageActions, true);
         Integer[] dims   = getDims(imageActions, false);
 
-        PDImageXObject image = null;
+        PDImageXObject pdfImage = null;
+        URI imagePathURI = URI.create(imagePath);
 
         if (imageSource.equals("path")) {
-            File fileToOpen = new File(URI.create(imagePath));
+            File fileToOpen = new File(imagePathURI);
             InputStream in = new FileInputStream(fileToOpen);
             Bitmap bmp = BitmapFactory.decodeStream(in);
-            image = LosslessFactory.createFromImage(document, bmp);
+            Bitmap rotatedImage = applyRotationTransform(imagePathURI.getPath(), bmp);
+            pdfImage  = LosslessFactory.createFromImage(document, rotatedImage);
+            in.close();
         }
 
         if (imageSource.equals("assets")) {
             InputStream is = ASSET_MANAGER.open(imagePath);
             Bitmap bmp = BitmapFactory.decodeStream(is);
-            image = LosslessFactory.createFromImage(document, bmp);
+            Bitmap rotatedImage = applyRotationTransform(imagePath, bmp);
+            pdfImage  = LosslessFactory.createFromImage(document, rotatedImage);
         }
 
         // Draw the PDImageXObject to the stream
         if (dims[0] != null && dims[1] != null) {
-            stream.drawImage(image, coords[0], coords[1], dims[0], dims[1]);
+            stream.drawImage(pdfImage , coords[0], coords[1], dims[0], dims[1]);
         }
         else {
-            stream.drawImage(image, coords[0], coords[1]);
+            stream.drawImage(pdfImage , coords[0], coords[1]);
         }
     }
 
