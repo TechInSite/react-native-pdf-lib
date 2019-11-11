@@ -32,15 +32,10 @@ android {
 
 repositories {
     mavenCentral()
-
-    // Only required for a github dependency. Once pdfbox-android is back
-    // to a proper release stream, remove this.
-    maven { url "https://jitpack.io" }
 }
 
 dependencies {
-    // compile 'com.tom_roush:pdfbox-android:1.8.10.1'
-    implementation 'com.github.TechInSite:PdfBox-Android:master-SNAPSHOT'
+    compile 'com.tom_roush:pdfbox-android:1.8.10.1'
     compile 'com.facebook.react:react-native:+'
 }
   
