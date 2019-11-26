@@ -90,9 +90,9 @@ public class PDPageFactory {
     }
 
     private void setMediaBox(ReadableMap dimensions) {
-        Integer[] coords = getCoords(dimensions, true);
-        Integer[] dims   = getDims(dimensions, true);
-        page.setMediaBox(new PDRectangle(coords[0], coords[1], dims[0], dims[1]));
+        Float[] coords = getCoords(dimensions, true);
+        Float[] dims   = getDims(dimensions, true);
+        page.setMediaBox(new PDRectangle(coords[0].floatValue(), coords[1].floatValue(), dims[0].floatValue(), dims[1].floatValue()));
     }
 
     private void drawText(ReadableMap textActions) throws NoSuchKeyException, IOException {
@@ -100,7 +100,7 @@ public class PDPageFactory {
         String fontName = textActions.getString("fontName");
         int fontSize = textActions.getInt("fontSize");
 
-        Integer[] coords = getCoords(textActions, true);
+        Float[] coords = getCoords(textActions, true);
         int[] rgbColor   = hexStringToRGB(textActions.getString("color"));
 
         PDFont font = PDType0Font.load(document, ASSET_MANAGER.open("fonts/" + fontName + ".ttf"));
@@ -108,17 +108,17 @@ public class PDPageFactory {
         stream.beginText();
         stream.setNonStrokingColor(rgbColor[0], rgbColor[1], rgbColor[2]);
         stream.setFont(font, fontSize);
-        stream.newLineAtOffset(coords[0], coords[1]);
+        stream.newLineAtOffset(coords[0].floatValue(), coords[1].floatValue());
         stream.showText(value);
         stream.endText();
     }
 
     private void drawRectangle(ReadableMap rectActions) throws NoSuchKeyException, IOException {
-        Integer[] coords = getCoords(rectActions, true);
-        Integer[] dims   = getDims(rectActions, true);
+        Float[] coords = getCoords(rectActions, true);
+        Float[] dims   = getDims(rectActions, true);
         int[] rgbColor   = hexStringToRGB(rectActions.getString("color"));
 
-        stream.addRect(coords[0], coords[1], dims[0], dims[1]);
+        stream.addRect(coords[0].floatValue(), coords[1].floatValue(), dims[0].floatValue(), dims[1].floatValue());
         stream.setNonStrokingColor(rgbColor[0], rgbColor[1], rgbColor[2]);
         stream.fill();
     }
@@ -159,8 +159,8 @@ public class PDPageFactory {
         String imagePath = imageActions.getString("imagePath");
         String imageSource = imageActions.getString("source");
 
-        Integer[] coords = getCoords(imageActions, true);
-        Integer[] dims   = getDims(imageActions, false);
+        Float[] coords = getCoords(imageActions, true);
+        Float[] dims   = getDims(imageActions, false);
 
         PDImageXObject pdfImage = null;
         URI imagePathURI = URI.create(imagePath);
@@ -183,32 +183,32 @@ public class PDPageFactory {
 
         // Draw the PDImageXObject to the stream
         if (dims[0] != null && dims[1] != null) {
-            stream.drawImage(pdfImage , coords[0], coords[1], dims[0], dims[1]);
+            stream.drawImage(pdfImage , coords[0].floatValue(), coords[1].floatValue(), dims[0].floatValue(), dims[1].floatValue());
         }
         else {
-            stream.drawImage(pdfImage , coords[0], coords[1]);
+            stream.drawImage(pdfImage , coords[0].floatValue(), coords[1].floatValue());
         }
     }
 
             /* ----- Static utilities ----- */
-    private static Integer[] getDims(ReadableMap dimsMap, boolean required) {
-        return getIntegerKeyPair(dimsMap, "width", "height", required);
+    private static Float[] getDims(ReadableMap dimsMap, boolean required) {
+        return getFloatKeyPair(dimsMap, "width", "height", required);
     }
 
-    private static Integer[] getCoords(ReadableMap coordsMap, boolean required) {
-        return getIntegerKeyPair(coordsMap, "x", "y", required);
+    private static Float[] getCoords(ReadableMap coordsMap, boolean required) {
+        return getFloatKeyPair(coordsMap, "x", "y", required);
     }
 
-    private static Integer[] getIntegerKeyPair(ReadableMap map, String key1, String key2, boolean required) {
-        Integer val1 = null;
-        Integer val2 = null;
+    private static Float[] getFloatKeyPair(ReadableMap map, String key1, String key2, boolean required) {
+        Double val1 = null;
+        Double val2 = null;
         try {
-            val1 = map.getInt(key1);
-            val2 = map.getInt(key2);
+            val1 = map.getDouble(key1);
+            val2 = map.getDouble(key2);
         } catch (NoSuchKeyException e) {
             if (required) throw e;
         }
-        return new Integer[] { val1, val2 };
+        return new Float[] { val1.floatValue(), val2.floatValue() };
     }
 
     // We get a color as a hex string, e.g. "#F0F0F0" - so parse into RGB vals

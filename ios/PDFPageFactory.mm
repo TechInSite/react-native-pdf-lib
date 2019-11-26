@@ -226,8 +226,8 @@ void PDFPageFactory::drawImageAsPDF (NSDictionary* imageActions) {
         transformation[3] = scaleY;
     }
     
-    transformation[4] += coords.a.intValue;
-    transformation[5] += coords.b.intValue;
+    transformation[4] += coords.a.floatValue;
+    transformation[5] += coords.b.floatValue;
     /* ----------------------------------------------------------------- */
     
     // Retrieve & use the formXObject that we previously generated for this image
