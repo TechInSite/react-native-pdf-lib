@@ -55,10 +55,10 @@ void PDFPageFactory::createAndWrite (PDFWriter* pdfWriter, NSDictionary* pageAct
     
     NumberPair coords = getCoords(pageActions[@"mediaBox"]);
     NumberPair dims   = getDims(pageActions[@"mediaBox"]);
-    page->SetMediaBox(PDFRectangle(coords.a.intValue,
-                                   coords.b.intValue,
-                                   dims.a.intValue,
-                                   dims.b.intValue));
+    page->SetMediaBox(PDFRectangle(coords.a.doubleValue,
+                                   coords.b.doubleValue,
+                                   dims.a.doubleValue,
+                                   dims.b.doubleValue));
     factory.applyActions(pageActions[@"actions"]);
     factory.endContext();
     pdfWriter->WritePageAndRelease(page);
@@ -143,7 +143,7 @@ void PDFPageFactory::addPDFImageFormXObject (NSDictionary* pdfImageActions) {
 void PDFPageFactory::drawText (NSDictionary* textActions) {
     NSString* value    = [RCTConvert NSString:textActions[@"value"]];
     NSString* fontName = [RCTConvert NSString:textActions[@"fontName"]];
-    NSInteger fontSize = [RCTConvert NSInteger:textActions[@"fontSize"]];
+    NSInteger fontSize = [RCTConvert NSInteger:textActions[@"fontSize"]]; // TODO: Should this be double?
     NumberPair coords  = getCoords(textActions);
     unsigned hexColor  = hexIntFromString(textActions[@"color"]);
 
@@ -151,7 +151,7 @@ void PDFPageFactory::drawText (NSDictionary* textActions) {
     PDFUsedFont* font  = pdfWriter->GetFontForFile(fontPath.UTF8String);
 
     AbstractContentContext::TextOptions textOptions(font, fontSize, AbstractContentContext::eRGB, hexColor);
-    context->WriteText(coords.a.intValue, coords.b.intValue, value.UTF8String, textOptions);
+    context->WriteText(coords.a.doubleValue, coords.b.doubleValue, value.UTF8String, textOptions);
 }
 
 void PDFPageFactory::drawRectangle (NSDictionary* rectActions) {
@@ -162,10 +162,10 @@ void PDFPageFactory::drawRectangle (NSDictionary* rectActions) {
     AbstractContentContext::GraphicOptions options(AbstractContentContext::eFill,
                                                    AbstractContentContext::eRGB,
                                                    hexColor);
-    context->DrawRectangle(coords.a.intValue,
-                           coords.b.intValue,
-                           dims.a.intValue,
-                           dims.b.intValue,
+    context->DrawRectangle(coords.a.doubleValue,
+                           coords.b.doubleValue,
+                           dims.a.doubleValue,
+                           dims.b.doubleValue,
                            options);
 }
 
@@ -192,8 +192,8 @@ void PDFPageFactory::drawImageAsPDF (NSDictionary* imageActions) {
     if (dims.a && dims.b) {
         options.transformationMethod = AbstractContentContext::EImageTransformation::eFit;
         options.fitPolicy            = AbstractContentContext::EFitPolicy::eAlways;
-        options.boundingBoxWidth     = dims.a.intValue;
-        options.boundingBoxHeight    = dims.b.intValue;
+        options.boundingBoxWidth     = dims.a.doubleValue;
+        options.boundingBoxHeight    = dims.b.doubleValue;
     }
     
     double transformation[6] = {1,0,0,1,0,0};

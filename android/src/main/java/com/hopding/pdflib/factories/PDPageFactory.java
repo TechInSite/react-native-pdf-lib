@@ -98,7 +98,7 @@ public class PDPageFactory {
     private void drawText(ReadableMap textActions) throws NoSuchKeyException, IOException {
         String value = textActions.getString("value");
         String fontName = textActions.getString("fontName");
-        int fontSize = textActions.getInt("fontSize");
+        int fontSize = textActions.getInt("fontSize"); // TODO: Check what happens if we change to getDouble
 
         Float[] coords = getCoords(textActions, true);
         int[] rgbColor   = hexStringToRGB(textActions.getString("color"));
